@@ -155,7 +155,7 @@
               <span class="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-md bg-red-50 text-red-700 border border-red-100">☎</span>
               <div>
                 <div class="font-semibold">โทร</div>
-                <div class="text-slate-600"> 0917762859</div>
+                <div class="text-slate-600">080-992-5304</div>
               </div>
             </div>
 
@@ -185,18 +185,6 @@
           </div>
         </div>
 
-        <!-- MAP PLACEHOLDER -->
-        <div class="mt-6 bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-          <div class="p-5 sm:p-6 border-b border-slate-100">
-            <h2 class="text-lg font-bold text-slate-800">แผนที่</h2>
-            <p class="mt-1 text-sm text-slate-500"></p>
-          </div>
-          <div class="p-3">
-            <div class="aspect-[16/9] rounded-md bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-500 text-sm">
-              
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </div>

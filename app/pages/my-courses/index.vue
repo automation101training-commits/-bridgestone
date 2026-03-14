@@ -71,9 +71,12 @@
         >
           <div class="aspect-[16/9] bg-slate-100 overflow-hidden">
             <img
-              v-if="c.thumbnail_url"
-              :src="c.thumbnail_url"
+              v-if="getThumbnailSrc(c)"
+              :src="getThumbnailSrc(c)"
               class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform"
+              referrerpolicy="no-referrer"
+              crossorigin="anonymous"
+              @error="onThumbnailError(c)"
               alt=""
             />
             <div v-else class="w-full h-full flex items-center justify-center text-slate-400 text-sm">
@@ -103,6 +106,7 @@ type Course = {
   title: string
   description: string | null
   thumbnail_url: string | null
+  thumbnail_candidates?: string[]
 }
 
 type EnrollRow = {
@@ -116,9 +120,101 @@ const { getSession } = useAuth()
 const loading = ref(true)
 const errorMsg = ref("")
 const items = ref<Course[]>([])
+const thumbnailAttemptIndex = ref<Record<string, number>>({})
 
 const displayName = ref("ผู้ใช้งาน")
 const displayEmail = ref("")
+
+function extractGoogleDriveFileId(rawUrl: string) {
+  const value = String(rawUrl || "").trim()
+  if (!value) return ""
+  if (!/^https?:\/\//i.test(value)) return ""
+
+  try {
+    const url = new URL(value)
+    const host = url.hostname.toLowerCase()
+    if (!host.includes("drive.google.com") && !host.includes("docs.google.com")) return ""
+
+    const pathMatch = url.pathname.match(/\/file\/d\/([^/]+)/i) || url.pathname.match(/\/d\/([^/]+)/i)
+    if (pathMatch?.[1]) return String(pathMatch[1]).trim()
+
+    const id = String(url.searchParams.get("id") || "").trim()
+    if (id) return id
+
+    return ""
+  } catch {
+    return ""
+  }
+}
+
+function normalizeThumbnailUrl(rawUrl: string) {
+  const value = String(rawUrl || "").trim()
+  if (!value) return ""
+  if (value.startsWith("data:image/")) return value
+  if (value.startsWith("//")) return `https:${value}`
+  if (value.startsWith("/")) return value
+  if (/^(\.?\.?\/)?[^?#]+\.(?:png|jpe?g|gif|webp|svg|avif)(?:[?#].*)?$/i.test(value)) return value
+  if (!/^https?:\/\//i.test(value)) return ""
+
+  const googleDriveFileId = extractGoogleDriveFileId(value)
+  if (googleDriveFileId) {
+    return `https://drive.google.com/thumbnail?id=${encodeURIComponent(googleDriveFileId)}&sz=w1600`
+  }
+
+  try {
+    const url = new URL(value)
+    if (url.protocol === "http:") url.protocol = "https:"
+    return url.toString()
+  } catch {
+    return value
+  }
+}
+
+function uniqueNonEmpty(values: string[]) {
+  return [...new Set(values.map((value) => String(value || "").trim()).filter(Boolean))]
+}
+
+function buildThumbnailCandidates(rawUrl: string) {
+  const normalizedUrl = normalizeThumbnailUrl(rawUrl)
+  const fileId = extractGoogleDriveFileId(rawUrl) || extractGoogleDriveFileId(normalizedUrl)
+  if (!fileId) return uniqueNonEmpty([normalizedUrl])
+
+  return uniqueNonEmpty([
+    `https://lh3.googleusercontent.com/d/${encodeURIComponent(fileId)}=w1600`,
+    `https://drive.google.com/uc?export=view&id=${encodeURIComponent(fileId)}`,
+    `https://drive.google.com/thumbnail?id=${encodeURIComponent(fileId)}&sz=w1600`,
+    normalizedUrl,
+  ])
+}
+
+function getThumbnailSrc(course: Course) {
+  const candidates = Array.isArray(course.thumbnail_candidates)
+    ? course.thumbnail_candidates
+    : uniqueNonEmpty([String(course.thumbnail_url || "").trim()])
+
+  const index = Number(thumbnailAttemptIndex.value[course.id] || 0)
+  return candidates[index] || ""
+}
+
+function onThumbnailError(course: Course) {
+  const candidates = Array.isArray(course.thumbnail_candidates)
+    ? course.thumbnail_candidates
+    : uniqueNonEmpty([String(course.thumbnail_url || "").trim()])
+
+  const currentIndex = Number(thumbnailAttemptIndex.value[course.id] || 0)
+  if (currentIndex < candidates.length - 1) {
+    thumbnailAttemptIndex.value = {
+      ...thumbnailAttemptIndex.value,
+      [course.id]: currentIndex + 1,
+    }
+    return
+  }
+
+  thumbnailAttemptIndex.value = {
+    ...thumbnailAttemptIndex.value,
+    [course.id]: candidates.length,
+  }
+}
 
 const initials = computed(() => {
   const base = (displayName.value || displayEmail.value || "U").trim()
@@ -156,6 +252,7 @@ const load = async () => {
   loading.value = true
   errorMsg.value = ""
   items.value = []
+  thumbnailAttemptIndex.value = {}
 
   try {
     const { session } = await getSession()
@@ -188,7 +285,18 @@ const load = async () => {
     if (error) throw error
 
     const rows = (data || []) as EnrollRow[]
-    items.value = rows.map((r) => r.course).filter(Boolean) as Course[]
+    items.value = rows
+      .map((row) => {
+        const course = row.course
+        if (!course) return null
+        const thumbnailCandidates = buildThumbnailCandidates(course.thumbnail_url || "")
+        return {
+          ...course,
+          thumbnail_url: thumbnailCandidates[0] || null,
+          thumbnail_candidates: thumbnailCandidates,
+        } as Course
+      })
+      .filter(Boolean) as Course[]
   } catch (e: any) {
     errorMsg.value = e?.message || "โหลดข้อมูลไม่สำเร็จ"
   } finally {

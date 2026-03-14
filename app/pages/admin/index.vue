@@ -36,58 +36,6 @@
         {{ flashMsg }}
       </div>
 
-      <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div class="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h2 class="text-lg font-bold text-slate-900">เมนูจัดการหลังบ้าน</h2>
-            <p class="mt-1 text-sm text-slate-500">
-              เลือกหัวข้อที่ต้องการเพื่อไปยังส่วนจัดการลูกค้า คอร์ส และบทเรียนได้ทันที
-            </p>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3 text-right text-xs text-slate-500 sm:grid-cols-3">
-            <div class="rounded-2xl bg-slate-50 px-4 py-3">
-              <div class="text-[11px] uppercase tracking-wide">ลูกค้า</div>
-              <div class="mt-1 text-lg font-bold text-slate-900">{{ registeredCustomerRows.length }}</div>
-            </div>
-            <div class="rounded-2xl bg-slate-50 px-4 py-3">
-              <div class="text-[11px] uppercase tracking-wide">คอร์ส</div>
-              <div class="mt-1 text-lg font-bold text-slate-900">{{ courses.length }}</div>
-            </div>
-            <div class="rounded-2xl bg-slate-50 px-4 py-3">
-              <div class="text-[11px] uppercase tracking-wide">สิทธิ์เข้าเรียน</div>
-              <div class="mt-1 text-lg font-bold text-slate-900">{{ enrollmentRows.length }}</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
-          <a
-            href="#customers"
-            class="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-left transition hover:border-red-300 hover:bg-red-100"
-          >
-            <div class="text-sm font-bold text-red-700">จัดการลูกค้า</div>
-            <div class="mt-1 text-sm text-slate-600">กำหนดสิทธิ์เข้าดูคอร์สให้สมาชิกแต่ละคน</div>
-          </a>
-
-          <a
-            href="#courses"
-            class="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-left transition hover:border-slate-300 hover:bg-slate-100"
-          >
-            <div class="text-sm font-bold text-slate-900">จัดการคอร์ส</div>
-            <div class="mt-1 text-sm text-slate-600">เพิ่มคอร์สใหม่และแก้ไขข้อมูลคอร์สทั้งหมด</div>
-          </a>
-
-          <a
-            href="#lessons"
-            class="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-left transition hover:border-slate-300 hover:bg-slate-100"
-          >
-            <div class="text-sm font-bold text-slate-900">จัดการบทเรียน</div>
-            <div class="mt-1 text-sm text-slate-600">เพิ่ม ลบ และแก้ไขลิงก์วิดีโอของแต่ละบทเรียน</div>
-          </a>
-        </div>
-      </section>
-
       <div class="space-y-6">
         <section id="customers" class="scroll-mt-24 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <div class="flex items-center justify-between gap-3">
@@ -284,6 +232,110 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+        </section>
+
+        <section id="inquiries" class="scroll-mt-24 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 class="text-lg font-bold text-slate-900">ข้อความจากลูกค้า</h2>
+              <p class="mt-1 text-sm text-slate-500">
+                รายการที่ลูกค้าส่งเข้ามาจากหน้า Contact และ Invoice
+              </p>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-end gap-2">
+              <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                ติดต่อเรา {{ inquiryContactCount }}
+              </span>
+              <span class="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
+                ใบเสนอราคา {{ inquiryInvoiceCount }}
+              </span>
+              <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                รวม {{ inquiryRows.length }}
+              </span>
+            </div>
+          </div>
+
+          <div v-if="inquiryLoadError" class="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+            {{ inquiryLoadError }}
+          </div>
+
+          <div class="mt-5 overflow-hidden rounded-2xl border border-slate-200">
+            <div class="max-h-[620px] overflow-auto">
+              <table class="min-w-full table-fixed text-sm">
+                <thead class="sticky top-0 z-10 bg-slate-50">
+                  <tr class="border-b border-slate-200 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <th class="w-[130px] px-3 py-3">วันที่เวลา</th>
+                    <th class="w-[96px] px-3 py-3">ที่มา</th>
+                    <th class="w-[180px] px-3 py-3">ลูกค้า</th>
+                    <th class="w-[220px] px-3 py-3">โทร / อีเมล</th>
+                    <th class="w-[260px] px-3 py-3">หัวข้อ / บริษัท</th>
+                    <th class="min-w-[320px] px-3 py-3">รายละเอียด</th>
+                  </tr>
+                </thead>
+
+                <tbody class="divide-y divide-slate-100 bg-white">
+                  <tr v-if="inquiryRows.length === 0">
+                    <td colspan="6" class="px-3 py-10 text-center text-slate-500">ยังไม่มีข้อความจากลูกค้า</td>
+                  </tr>
+
+                  <tr
+                    v-for="row in inquiryRows"
+                    :key="row.key"
+                    class="align-top transition hover:bg-slate-50/70"
+                  >
+                    <td class="px-3 py-3 text-slate-500">
+                      {{ formatDateTime(row.created_at) }}
+                    </td>
+
+                    <td class="px-3 py-3">
+                      <span
+                        class="inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold"
+                      :class="row.source_type === 'invoice' ? 'border-indigo-200 bg-indigo-50 text-indigo-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700'"
+                    >
+                        {{ row.source_type === "invoice" ? "ใบเสนอราคา" : "ติดต่อเรา" }}
+                    </span>
+                  </td>
+
+                    <td class="px-3 py-3 text-slate-800">
+                      <div class="font-semibold inquiry-clamp-2" :title="row.customer_name || '-'">
+                        {{ row.customer_name || "-" }}
+                      </div>
+                    </td>
+
+                    <td class="px-3 py-3 text-slate-600">
+                      <div class="font-medium text-slate-700">{{ row.phone || "-" }}</div>
+                      <div class="mt-1 text-xs text-slate-500 break-all inquiry-clamp-2" :title="row.email || '-'">
+                        {{ row.email || "-" }}
+                      </div>
+                    </td>
+
+                    <td class="px-3 py-3 text-slate-600">
+                      <div class="font-medium text-slate-800 inquiry-clamp-2" :title="row.subject || '-'">
+                        {{ row.subject || "-" }}
+                      </div>
+                      <div class="mt-1 text-xs text-slate-500 inquiry-clamp-2" :title="row.company || '-'">
+                        {{ row.company || "-" }}
+                      </div>
+                      <div
+                        v-if="row.source_page"
+                        class="mt-1 text-[11px] text-slate-400 break-all inquiry-clamp-1"
+                        :title="row.source_page"
+                      >
+                        {{ row.source_page }}
+                      </div>
+                    </td>
+
+                    <td class="px-3 py-3 text-slate-700">
+                      <div class="leading-6 inquiry-clamp-3" :title="row.detail || '-'">
+                        {{ shortText(row.detail, 260) || "-" }}
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
 
@@ -612,6 +664,20 @@ type CustomerLevelMembership = {
   level: CustomerLevel | null
 }
 
+type InquiryRow = {
+  key: string
+  source_type: "contact" | "invoice"
+  source_label: string
+  customer_name: string
+  phone: string
+  company: string
+  email: string
+  subject: string
+  detail: string
+  source_page: string
+  created_at: string | null
+}
+
 const { $supabase } = useNuxtApp() as any
 const admin = useAdmin()
 
@@ -633,6 +699,8 @@ const customerLevelMemberships = ref<CustomerLevelMembership[]>([])
 const selectedCourseId = ref("")
 const savingLevelUserId = ref("")
 const levelDrafts = ref<Record<string, string>>({})
+const inquiryRows = ref<InquiryRow[]>([])
+const inquiryLoadError = ref("")
 
 const accessForm = ref({
   selectedUserId: "",
@@ -658,12 +726,57 @@ function resetFlash() {
   pageErrorMsg.value = ""
 }
 
+function extractGoogleDriveFileId(rawUrl: string) {
+  const value = String(rawUrl || "").trim()
+  if (!value) return ""
+  if (!/^https?:\/\//i.test(value)) return ""
+
+  try {
+    const url = new URL(value)
+    const host = url.hostname.toLowerCase()
+    if (!host.includes("drive.google.com") && !host.includes("docs.google.com")) return ""
+
+    const pathMatch = url.pathname.match(/\/file\/d\/([^/]+)/i) || url.pathname.match(/\/d\/([^/]+)/i)
+    if (pathMatch?.[1]) return String(pathMatch[1]).trim()
+
+    const id = String(url.searchParams.get("id") || "").trim()
+    if (id) return id
+
+    return ""
+  } catch {
+    return ""
+  }
+}
+
+function normalizeThumbnailUrl(rawUrl: string) {
+  const value = String(rawUrl || "").trim()
+  if (!value) return ""
+  if (value.startsWith("data:image/")) return value
+  if (value.startsWith("//")) return `https:${value}`
+  if (value.startsWith("/")) return value
+  if (/^(\.?\.?\/)?[^?#]+\.(?:png|jpe?g|gif|webp|svg|avif)(?:[?#].*)?$/i.test(value)) return value
+  if (!/^https?:\/\//i.test(value)) return ""
+
+  const googleDriveFileId = extractGoogleDriveFileId(value)
+  if (googleDriveFileId) {
+    return `https://drive.google.com/thumbnail?id=${encodeURIComponent(googleDriveFileId)}&sz=w1600`
+  }
+
+  try {
+    const url = new URL(value)
+    if (url.protocol === "http:") url.protocol = "https:"
+    return url.toString()
+  } catch {
+    return value
+  }
+}
+
 function normalizeCourse(row: any): Course {
   return {
     id: String(row?.id || ""),
     title: String(row?.title || ""),
     description: String(row?.description || ""),
-    thumbnail_url: String(row?.thumbnail_url || ""),
+    thumbnail_url: normalizeThumbnailUrl(String(row?.thumbnail_url || "")),
   }
 }
 
@@ -706,6 +819,46 @@ function normalizeCustomerLevelMembership(row: any): CustomerLevelMembership {
     status: String(row?.status || "active").trim(),
     level: row?.level ? normalizeCustomerLevel(row.level) : null,
   }
+}
+
+function normalizeContactInquiry(row: any, index: number): InquiryRow {
+  const id = String(row?.id || "").trim() || `contact-${index + 1}`
+  return {
+    key: `contact-${id}`,
+    source_type: "contact",
+    source_label: "Contact",
+    customer_name: String(row?.full_name || "").trim(),
+    phone: String(row?.phone || "").trim(),
+    company: String(row?.company || "").trim(),
+    email: String(row?.email || "").trim(),
+    subject: String(row?.subject || "").trim(),
+    detail: String(row?.detail || "").trim(),
+    source_page: String(row?.source_page || "").trim(),
+    created_at: row?.created_at ? String(row.created_at) : null,
+  }
+}
+
+function normalizeInvoiceInquiry(row: any, index: number): InquiryRow {
+  const id = String(row?.id || "").trim() || `invoice-${index + 1}`
+  return {
+    key: `invoice-${id}`,
+    source_type: "invoice",
+    source_label: "Invoice",
+    customer_name: String(row?.customer_name || row?.full_name || "").trim(),
+    phone: String(row?.phone || "").trim(),
+    company: String(row?.company || "").trim(),
+    email: String(row?.email || "").trim(),
+    subject: "Request Quotation",
+    detail: String(row?.details || row?.detail || "").trim(),
+    source_page: "/invoice",
+    created_at: row?.created_at ? String(row.created_at) : null,
+  }
+}
+
+function getInquirySortTimestamp(value: string | null) {
+  if (!value) return 0
+  const timestamp = Date.parse(value)
+  return Number.isNaN(timestamp) ? 0 : timestamp
 }
 
 function getProfileUserId(profile: ProfileRow | null | undefined) {
@@ -892,6 +1045,9 @@ const selectedCourseLessons = computed(() =>
     .sort((a, b) => a.sort_order - b.sort_order)
 )
 
+const inquiryContactCount = computed(() => inquiryRows.value.filter((row) => row.source_type === "contact").length)
+const inquiryInvoiceCount = computed(() => inquiryRows.value.filter((row) => row.source_type === "invoice").length)
+
 function countLessons(courseId: string) {
   return lessons.value.filter((lesson) => lesson.course_id === courseId).length
 }
@@ -921,6 +1077,17 @@ function formatDateTime(value: string | null) {
   } catch {
     return value
   }
+}
+
+function normalizeInlineText(value: string) {
+  return String(value || "").replace(/\s+/g, " ").trim()
+}
+
+function shortText(value: string, limit = 200) {
+  const normalized = normalizeInlineText(value)
+  if (!normalized) return ""
+  if (normalized.length <= limit) return normalized
+  return `${normalized.slice(0, Math.max(0, limit - 3))}...`
 }
 
 function syncLevelDrafts() {
@@ -1014,7 +1181,7 @@ async function loadDashboard() {
       return
     }
 
-    const [directoryRows, profileResult, courseResult, lessonResult, enrollmentResult, levelResult, membershipResult] = await Promise.all([
+    const [directoryRows, profileResult, courseResult, lessonResult, enrollmentResult, levelResult, membershipResult, contactResult, invoiceResult] = await Promise.all([
       loadDirectoryUsers(),
       $supabase.from("profiles").select("*"),
       $supabase.from("courses").select("id,title,description,thumbnail_url"),
@@ -1034,6 +1201,8 @@ async function loadDashboard() {
         .from("customer_level_memberships")
         .select("id,user_id,level_id,status, level:customer_levels(id,code,name,priority,is_default,can_access_admin)")
         .order("created_at", { ascending: false }),
+      $supabase.from("contact_message").select("*"),
+      $supabase.from("invoice").select("*"),
     ])
 
     if (courseResult.error) throw courseResult.error
@@ -1059,6 +1228,22 @@ async function loadDashboard() {
           course: row.course ? normalizeCourse(row.course) : null,
         }))
       : []
+
+    const loadIssues: string[] = []
+    const contactRows = Array.isArray(contactResult.data)
+      ? contactResult.data.map((row, index) => normalizeContactInquiry(row, index))
+      : []
+    const invoiceRows = Array.isArray(invoiceResult.data)
+      ? invoiceResult.data.map((row, index) => normalizeInvoiceInquiry(row, index))
+      : []
+
+    if (contactResult.error) loadIssues.push(`contact_message: ${contactResult.error.message}`)
+    if (invoiceResult.error) loadIssues.push(`invoice: ${invoiceResult.error.message}`)
+
+    inquiryRows.value = [...contactRows, ...invoiceRows].sort(
+      (a, b) => getInquirySortTimestamp(b.created_at) - getInquirySortTimestamp(a.created_at)
+    )
+    inquiryLoadError.value = loadIssues.join(" | ")
 
     if (!courses.value.find((course) => course.id === selectedCourseId.value)) {
       selectedCourseId.value = courses.value[0]?.id || ""
@@ -1179,10 +1364,12 @@ async function createCourse() {
   savingCourse.value = true
 
   try {
+    const normalizedThumbnailUrl = normalizeThumbnailUrl(courseForm.value.thumbnail_url)
+
     const { error } = await $supabase.from("courses").insert({
       title: courseForm.value.title.trim(),
       description: courseForm.value.description.trim() || null,
-      thumbnail_url: courseForm.value.thumbnail_url.trim() || null,
+      thumbnail_url: normalizedThumbnailUrl || null,
     })
 
     if (error) throw error
@@ -1201,12 +1388,14 @@ async function saveCourse(course: Course) {
   resetFlash()
 
   try {
+    const normalizedThumbnailUrl = normalizeThumbnailUrl(course.thumbnail_url)
+
     const { error } = await $supabase
       .from("courses")
       .update({
         title: course.title.trim(),
         description: course.description.trim() || null,
-        thumbnail_url: course.thumbnail_url.trim() || null,
+        thumbnail_url: normalizedThumbnailUrl || null,
       })
       .eq("id", course.id)
 
@@ -1287,3 +1476,28 @@ async function deleteLesson(lessonId: string) {
 
 onMounted(loadDashboard)
 </script>
+
+<style scoped>
+.inquiry-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.inquiry-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.inquiry-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style>
+
+

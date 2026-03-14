@@ -155,7 +155,7 @@
               <span class="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-md bg-red-50 text-red-700 border border-red-100">☎</span>
               <div>
                 <div class="font-semibold">โทร</div>
-                <div class="text-slate-600"> 0917762859</div>
+                <div class="text-slate-600">080-992-5304</div>
               </div>
             </div>
 
