@@ -11,9 +11,12 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
   },
   runtimeConfig: {
+    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    ADMIN_EMAILS: process.env.ADMIN_EMAILS,
     public: {
       SUPABASE_URL: process.env.SUPABASE_URL,
       SUPABASE_KEY: process.env.SUPABASE_KEY,
+      ADMIN_EMAILS: process.env.ADMIN_EMAILS,
     },
   },
 });

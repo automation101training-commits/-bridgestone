@@ -164,6 +164,15 @@
 
             <div v-else class="flex items-center gap-2">
               <NuxtLink
+                v-if="isAdmin"
+                to="/admin"
+                class="h-9 inline-flex items-center rounded-full border border-slate-200 px-4 text-sm font-semibold text-slate-700
+                       hover:bg-slate-50"
+              >
+                หลังบ้าน
+              </NuxtLink>
+
+              <NuxtLink
                 to="/my-courses"
                 class="h-9 inline-flex items-center rounded-full bg-red-600 px-4 text-sm font-semibold text-white shadow-sm
                        hover:bg-red-700 active:bg-red-800 transition-colors"
@@ -238,25 +247,28 @@ const onSearch = () => {
 }
 
 const auth = useAuth?.() as any
-const session = auth?.session
-const init = auth?.init
-const signOut = auth?.signOut
+const admin = useAdmin?.() as any
 
 onMounted(async () => {
   try {
-    if (init) await init()
+    if (auth?.init) await auth.init()
+    if (admin?.refreshAdminState) await admin.refreshAdminState()
   } catch (e) {
     console.error("auth init error:", e)
   }
 })
 
 const isLoggedIn = computed(() => {
-  return !!session?.value
+  return !!auth?.session?.value
+})
+
+const isAdmin = computed(() => {
+  return !!admin?.isAdmin?.value
 })
 
 const onLogout = async () => {
   try {
-    if (signOut) await signOut()
+    if (auth?.signOut) await auth.signOut()
   } finally {
     await navigateTo("/")
   }

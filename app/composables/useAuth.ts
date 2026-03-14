@@ -1,17 +1,35 @@
-// composables/useAuth.ts
+import type { Session } from "@supabase/supabase-js"
+
 export const useAuth = () => {
   const { $supabase } = useNuxtApp() as any
 
-  // เก็บ user ไว้ใช้ทั้งเว็บ
   const user = useState<any | null>("auth_user", () => null)
+  const session = useState<Session | null>("auth_session", () => null)
+  const initialized = useState<boolean>("auth_initialized", () => false)
+
+  const applySession = (nextSession: Session | null) => {
+    session.value = nextSession
+    user.value = nextSession?.user ?? null
+  }
 
   const getSession = async () => {
     const { data, error } = await $supabase.auth.getSession()
-    if (!error) user.value = data?.session?.user ?? null
+    if (!error) applySession(data?.session ?? null)
     return { session: data?.session ?? null, error }
   }
 
-  // ✅ สมัครสมาชิก + เก็บชื่อไว้ใน user_metadata.full_name
+  const init = async () => {
+    if (initialized.value) return
+
+    await getSession()
+
+    $supabase.auth.onAuthStateChange((_event: string, nextSession: Session | null) => {
+      applySession(nextSession)
+    })
+
+    initialized.value = true
+  }
+
   const signUp = async (email: string, password: string, fullName?: string) => {
     const { data, error } = await $supabase.auth.signUp({
       email,
@@ -20,32 +38,31 @@ export const useAuth = () => {
         data: {
           full_name: (fullName || "").trim(),
         },
-        // ถ้ามึงเปิด email confirm ไว้ อยากให้เด้งกลับเว็บตอนกดยืนยัน
-        // emailRedirectTo: `${window.location.origin}/login`,
       },
     })
 
-    // ถ้า supabase ส่ง session กลับมา (กรณีไม่ต้อง confirm) ก็อัปเดต user
-    if (!error) user.value = data?.user ?? user.value
+    if (!error) applySession(data?.session ?? null)
     return { data, error }
   }
 
   const signIn = async (email: string, password: string) => {
     const { data, error } = await $supabase.auth.signInWithPassword({ email, password })
-    if (!error) user.value = data?.user ?? null
+    if (!error) applySession(data?.session ?? null)
     return { data, error }
   }
 
   const signOut = async () => {
     const { error } = await $supabase.auth.signOut()
-    if (!error) user.value = null
+    if (!error) applySession(null)
     return { error }
   }
 
   return {
     user,
+    session,
+    init,
     getSession,
-    signUp,     // ✅ ต้องมีตัวนี้ ไม่งั้นหน้า signup จะฟ้อง
+    signUp,
     signIn,
     signOut,
   }
