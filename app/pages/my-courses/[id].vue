@@ -22,13 +22,18 @@
     <div v-else class="grid grid-cols-1 lg:grid-cols-12 gap-5">
       <div class="lg:col-span-8">
         <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-          <div class="aspect-video bg-black">
+          <div
+            ref="playerContainer"
+            class="aspect-video bg-black"
+            @contextmenu.capture.prevent.stop
+          >
             <iframe
               v-if="playerType === 'drive' && videoUrl"
               :key="videoUrl"
               :src="videoUrl"
               class="w-full h-full"
               allow="autoplay; encrypted-media; picture-in-picture"
+              sandbox="allow-scripts allow-same-origin allow-presentation"
               allowfullscreen
             />
             <video
@@ -121,6 +126,16 @@ const lessons = ref<Lesson[]>([])
 const currentLesson = ref<Lesson | null>(null)
 const videoUrl = ref("")
 const playerType = ref<"video" | "drive">("video")
+const playerContainer = ref<HTMLElement | null>(null)
+
+const blockPlayerContextMenu = (event: MouseEvent) => {
+  const container = playerContainer.value
+  const target = event.target as Node | null
+  if (!container || !target) return
+  if (!container.contains(target)) return
+  event.preventDefault()
+  event.stopPropagation()
+}
 
 function getGoogleDriveEmbedUrl(rawPath: string) {
   const value = String(rawPath || "").trim()
@@ -141,7 +156,7 @@ function getGoogleDriveEmbedUrl(rawPath: string) {
     }
 
     if (!fileId) return ""
-    return `https://drive.google.com/file/d/${fileId}/preview`
+    return `https://drive.google.com/file/d/${fileId}/preview?rm=minimal`
   } catch {
     return ""
   }
@@ -328,6 +343,14 @@ const load = async () => {
 }
 
 watch(courseId, () => load(), { immediate: true })
+
+onMounted(() => {
+  window.addEventListener("contextmenu", blockPlayerContextMenu, true)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener("contextmenu", blockPlayerContextMenu, true)
+})
 </script>
 
 <style scoped>
