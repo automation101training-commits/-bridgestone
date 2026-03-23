@@ -1,7 +1,7 @@
 <script setup lang="ts">
-await navigateTo('/training')
+await navigateTo('/login')
 </script>
 
 <template>
-  <div class="p-6 text-slate-600">Redirecting...</div>
+  <div></div>
 </template>
