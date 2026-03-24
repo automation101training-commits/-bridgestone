@@ -6,7 +6,7 @@
       <div class="max-w-none mx-auto px-4 sm:px-6 lg:px-10">
         <div class="h-16 flex items-center gap-3 sm:gap-4">
           <NuxtLink to="/" class="flex items-center gap-3 shrink-0">
-            <img src="/MBLogo.png" alt="M&B" class="h-9 w-auto object-contain" />
+            <img src="/Logo1.jpg" alt="NIC" class="h-9 w-auto object-contain" />
           </NuxtLink>
         </div>
 
