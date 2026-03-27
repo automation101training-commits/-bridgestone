@@ -10,6 +10,12 @@ export default defineNuxtConfig({
   css: ["./app/assets/css/main.css"],
   vite: {
     plugins: [tailwindcss()],
+    build: {
+      rollupOptions: {
+        external: [],
+      },
+    },
+    assetsInclude: ["**/*.png", "**/*.jpg", "**/*.ico"],
   },
   runtimeConfig: {
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
