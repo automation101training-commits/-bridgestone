@@ -204,7 +204,7 @@ const lines = [
 // key: "LINE/Station"  value: { x, y } เป็น % บนรูป
 const dotPositions: Record<string, Record<string, { x: number; y: number }>> = {
   HFW1: {
-    "Station 1": { x: 28, y: 58 },
+    "Station 1": { x: 20, y: 40 },
     "Station 2": { x: 55, y: 46 },
     "Station 3": { x: 82, y: 62 },
   },

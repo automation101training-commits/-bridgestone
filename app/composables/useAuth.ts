@@ -1,13 +1,5 @@
 const STORAGE_KEY = "nic_auth"
 
-async function sha256(text: string): Promise<string> {
-  const encoded = new TextEncoder().encode(text)
-  const buffer  = await crypto.subtle.digest("SHA-256", encoded)
-  return Array.from(new Uint8Array(buffer))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("")
-}
-
 export const useAuth = () => {
   const { $supabase } = useNuxtApp() as any
 
@@ -20,8 +12,8 @@ export const useAuth = () => {
   }
 
   const init = () => {
-    if (!process.client)  return
-    if (session.value)    return
+    if (typeof window === "undefined") return
+    if (session.value) return
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return
     try {
@@ -38,10 +30,8 @@ export const useAuth = () => {
 
   // ── Sign Up ──────────────────────────────────────────────────────────────
   const signUp = async (email: string, password: string, fullName: string) => {
-    const emailLower    = email.trim().toLowerCase()
-    const password_hash = await sha256(password)
+    const emailLower = email.trim().toLowerCase()
 
-    // Check duplicate email
     const { data: existing } = await $supabase
       .from("users")
       .select("id")
@@ -52,7 +42,7 @@ export const useAuth = () => {
 
     const { data, error } = await $supabase
       .from("users")
-      .insert({ full_name: fullName, email: emailLower, password_hash, active: false, role: "user" })
+      .insert({ full_name: fullName, email: emailLower, password_hash: password, active: false, role: "user" })
       .select()
       .single()
 
@@ -61,15 +51,15 @@ export const useAuth = () => {
   }
 
   // ── Sign In ──────────────────────────────────────────────────────────────
-  const signIn = async (email: string, password: string) => {
-    const emailLower    = email.trim().toLowerCase()
-    const password_hash = await sha256(password)
+  const signIn = async (emailOrUsername: string, password: string) => {
+    const value = emailOrUsername.trim().toLowerCase()
 
+    // ลอง query ด้วย email ก่อน ถ้าไม่เจอค่อย fallback หา username ผ่าน RPC
     const { data, error } = await $supabase
       .from("users")
       .select("id, full_name, email, active, role")
-      .eq("email", emailLower)
-      .eq("password_hash", password_hash)
+      .or(`email.eq.${value},username.eq.${value}`)
+      .eq("password_hash", password)
       .maybeSingle()
 
     if (error) throw error
@@ -84,7 +74,7 @@ export const useAuth = () => {
     }
     applySession(sessionData)
 
-    if (process.client) {
+    if (typeof window !== "undefined") {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionData))
     }
 
@@ -94,7 +84,7 @@ export const useAuth = () => {
   // ── Sign Out ─────────────────────────────────────────────────────────────
   const signOut = async () => {
     applySession(null)
-    if (process.client) {
+    if (typeof window !== "undefined") {
       localStorage.removeItem(STORAGE_KEY)
     }
     return { error: null }
