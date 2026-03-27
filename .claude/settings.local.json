@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm app/pages/admin/index.vue app/pages/contact.vue app/pages/course-booking.vue app/pages/index.vue app/pages/invoice.vue app/pages/my-courses/[id].vue app/pages/my-courses/index.vue app/pages/product/[id].vue app/pages/product/index.vue app/pages/product_old.vue app/pages/signup.vue app/pages/training/index.vue app/pages/training/[id].vue app/pages/web-service.vue)",
+      "Bash(rmdir app/pages/admin app/pages/my-courses app/pages/product app/pages/training)",
+      "Bash(cp \"c:/Users/thids/NIC/NIC/app/pages/login.vue\" \"c:/Users/thids/NIC/app/pages/login.vue\")",
+      "Bash(cp \"c:/Users/thids/NIC/NIC/.env\" \"c:/Users/thids/NIC/.env\")"
+    ]
+  }
+}
