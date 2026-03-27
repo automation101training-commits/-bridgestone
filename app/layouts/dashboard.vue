@@ -4,7 +4,7 @@
     <aside class="w-48 min-h-screen bg-white flex flex-col shadow-sm fixed top-0 left-0 bottom-0 z-40">
       <!-- Logo -->
       <div class="flex items-center gap-2 px-4 py-4 border-b border-gray-100">
-        <img src="/Logo1.jpg" alt="NIC" class="h-10 w-10 rounded-full object-cover shrink-0" />
+        <img src="/img_Head.png" alt="NIC" class="h-10 w-10 rounded-full object-cover shrink-0" />
         <div class="leading-tight">
           <div class="text-xs font-bold text-slate-900">Nawaloha Industry</div>
           <div class="text-xs text-slate-500">Company</div>

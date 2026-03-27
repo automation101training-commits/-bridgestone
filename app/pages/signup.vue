@@ -1,14 +1,14 @@
 <template>
   <div
     class="min-h-screen w-full flex items-center justify-center bg-cover bg-center bg-no-repeat"
-    style="background-image: url('/89545074311e989885507e250778ac23cc382be0.png')"
+    style="background-image: url('/img_Head.png')"
   >
     <div class="w-full max-w-sm mx-4">
       <div class="rounded-3xl bg-white/80 backdrop-blur-sm shadow-2xl px-8 py-10">
 
         <!-- Logo -->
         <div class="flex flex-col items-center mb-6">
-          <img src="/Logo1.jpg" alt="NIC" class="h-20 w-20 object-contain mb-4" />
+          <img src="/img_Head.png" alt="NIC" class="h-20 w-20 object-contain mb-4" />
           <h1 class="text-2xl font-black text-slate-900 tracking-widest">REGISTER</h1>
           <p class="text-slate-600 text-sm mt-1">Create your account</p>
         </div>

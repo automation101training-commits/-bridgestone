@@ -51,7 +51,7 @@
             x: {{ debugPos.x }} y: {{ debugPos.y }}
           </div>
           <img
-            src="/TD-300SCG + SFM-100 1.png"
+            src="/img_Head.png"
             alt="Machine Overview"
             class="w-full object-contain"
             style="min-height: calc(100vh - 220px)"
