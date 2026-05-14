@@ -1,4 +1,4 @@
-create or replace function public.is_mnb_admin()
+create or replace function public.is_factory_admin()
 returns boolean
 language plpgsql
 stable
@@ -12,8 +12,8 @@ begin
 
   if current_uid is not null and exists (
     select 1
-    from public.customer_level_memberships membership
-    join public.customer_levels level on level.id = membership.level_id
+    from public.user_access_levels membership
+    join public.access_levels level on level.id = membership.access_level_id
     where membership.user_id = current_uid
       and membership.status = 'active'
       and level.can_access_admin = true
@@ -22,55 +22,31 @@ begin
   end if;
 
   return
-    coalesce((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin', false)
-    or coalesce((auth.jwt() -> 'user_metadata' ->> 'role') = 'admin', false)
+    coalesce((auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'superadmin', 'owner'), false)
+    or coalesce((auth.jwt() -> 'user_metadata' ->> 'role') in ('admin', 'superadmin', 'owner'), false)
     or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin') in ('true', '1'), false)
     or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin') in ('true', '1'), false);
 end;
 $$;
 
-grant execute on function public.is_mnb_admin() to anon, authenticated;
+grant execute on function public.is_factory_admin() to anon, authenticated;
 
-alter table if exists public.courses enable row level security;
-alter table if exists public.course_lessons enable row level security;
-alter table if exists public.course_enrollments enable row level security;
-
-drop policy if exists "courses_admin_manage" on public.courses;
-create policy "courses_admin_manage"
-on public.courses
-for all
-to authenticated
-using (public.is_mnb_admin())
-with check (public.is_mnb_admin());
-
-drop policy if exists "course_enrollments_admin_manage" on public.course_enrollments;
-create policy "course_enrollments_admin_manage"
-on public.course_enrollments
-for all
-to authenticated
-using (public.is_mnb_admin())
-with check (public.is_mnb_admin());
-
-drop policy if exists "course_lessons_admin_manage" on public.course_lessons;
-create policy "course_lessons_admin_manage"
-on public.course_lessons
-for all
-to authenticated
-using (public.is_mnb_admin())
-with check (public.is_mnb_admin());
-
-insert into public.customer_level_memberships (user_id, level_id, status, notes)
+insert into public.user_access_levels (user_id, access_level_id, status, notes)
 select
   u.id,
   l.id,
   'active',
-  'Grant admin access from migration 004'
+  'Backfilled admin access from auth metadata'
 from auth.users u
-join public.customer_levels l on l.code = 'admin'
-where lower(u.email) = 'panupong.chinn@gmail.com'
+join public.access_levels l on l.code = 'admin'
+where
+  lower(coalesce(u.raw_app_meta_data ->> 'role', '')) in ('admin', 'superadmin', 'owner')
+  or lower(coalesce(u.raw_user_meta_data ->> 'role', '')) in ('admin', 'superadmin', 'owner')
+  or lower(coalesce(u.raw_app_meta_data ->> 'is_admin', '')) in ('true', '1')
+  or lower(coalesce(u.raw_user_meta_data ->> 'is_admin', '')) in ('true', '1')
 on conflict (user_id) do update
 set
-  level_id = excluded.level_id,
+  access_level_id = excluded.access_level_id,
   status = excluded.status,
   notes = excluded.notes,
   updated_at = now();

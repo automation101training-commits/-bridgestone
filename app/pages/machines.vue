@@ -1,144 +1,68 @@
 <template>
   <div class="min-h-screen flex">
-    <!-- Sidebar -->
-    <aside class="w-40 min-h-screen bg-[#0e0e0e] flex flex-col items-center py-4 shrink-0 fixed top-0 left-0 bottom-0 z-40">
-      <div class="flex flex-col items-center mb-6 px-2 text-center">
-        <img src="/img_Head.png" alt="Tire Production" class="w-24 h-16 object-cover rounded-md mb-2" />
-        <span class="text-white text-xs font-bold tracking-widest leading-tight">TIRE PRODUCTION</span>
-      </div>
-      <nav class="flex flex-col gap-3 w-full px-3">
-        <NuxtLink to="/home"
-          class="w-full py-2.5 rounded-full text-center text-white text-sm font-bold tracking-wide shadow transition-colors bg-[#7a1a1a] hover:bg-red-600">
-          Home
-        </NuxtLink>
-        <NuxtLink to="/machines"
-          class="w-full py-2.5 rounded-full text-center text-white text-sm font-bold tracking-wide shadow bg-red-600">
-          Machines
-        </NuxtLink>
-        <NuxtLink to="/oee"
-          class="w-full py-2.5 rounded-full text-center text-white text-sm font-semibold tracking-wide shadow transition-colors bg-[#7a1a1a] hover:bg-red-600">
-          OEE
-        </NuxtLink>
-      </nav>
-      <div class="flex-1" />
-      <div class="mb-4 flex flex-col items-center gap-1">
-        <button type="button"
-          class="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center shadow-lg hover:bg-blue-700 transition-colors"
-          @click="onLogout">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24">
-            <polygon points="12,4 20,19 4,19" fill="#ef4444" />
-          </svg>
-        </button>
-        <span class="text-white text-xs font-bold tracking-widest">LOGOUT</span>
-      </div>
-    </aside>
+    <ProductionSidebar active="machines" />
 
-    <!-- Main -->
     <div class="flex-1 ml-40 min-h-screen bg-[#0a0e1a] flex flex-col">
+      <div v-if="errorMessages.length" class="mx-4 mt-4 rounded-xl bg-red-950/70 px-4 py-3 text-sm text-red-200">
+        {{ errorMessages.join(" | ") }}
+      </div>
+      <div v-else-if="!hasAnyData" class="mx-4 mt-4 rounded-xl bg-slate-900/70 px-4 py-3 text-sm text-slate-200">
+        No data returned from Supabase tables yet.
+      </div>
 
-      <!-- Top Stats Bar -->
       <div class="flex items-center gap-6 px-6 py-3 bg-[#111827] border-b border-slate-700/50">
-        <div class="flex items-center gap-2">
-          <span class="text-yellow-400 text-lg">🔔</span>
+        <div v-for="item in topStats" :key="item.label" class="flex items-center gap-2">
           <div>
-            <div class="text-slate-400 text-xs">Total</div>
-            <div class="text-white text-xl font-black">152</div>
-          </div>
-        </div>
-        <div class="h-8 w-px bg-slate-700" />
-        <div class="flex items-center gap-2">
-          <span class="text-red-400 text-lg">🔴</span>
-          <div>
-            <div class="text-slate-400 text-xs">Active</div>
-            <div class="text-white text-xl font-black">4 <span class="text-sm font-normal text-slate-300">Active</span></div>
-          </div>
-        </div>
-        <div class="h-8 w-px bg-slate-700" />
-        <div class="flex items-center gap-2">
-          <span class="text-orange-400 text-lg">⚠️</span>
-          <div>
-            <div class="text-slate-400 text-xs">Critical</div>
-            <div class="text-white text-xl font-black">2 <span class="text-sm font-normal text-slate-300">Critical</span></div>
-          </div>
-        </div>
-        <div class="h-8 w-px bg-slate-700" />
-        <div class="flex items-center gap-2">
-          <span class="text-orange-300 text-lg">⚠️</span>
-          <div>
-            <div class="text-slate-400 text-xs">Alarm</div>
-            <div class="text-white text-xl font-black">22 <span class="text-sm font-normal text-slate-300">Alarms/hr</span></div>
+            <div class="text-slate-400 text-xs">{{ item.label }}</div>
+            <div class="text-white text-xl font-black">
+              {{ item.value }}
+              <span v-if="item.unit" class="text-sm font-normal text-slate-300">{{ item.unit }}</span>
+            </div>
           </div>
         </div>
 
         <div class="flex-1" />
 
-        <!-- Legend -->
         <div class="flex items-center gap-4 text-xs">
-          <span class="flex items-center gap-1.5">
-            <span class="w-3 h-3 rounded-sm bg-green-500 inline-block" />
-            <span class="text-slate-300">RUNNING</span>
-          </span>
-          <span class="flex items-center gap-1.5">
-            <span class="w-3 h-3 rounded-sm bg-yellow-400 inline-block" />
-            <span class="text-slate-300">WARNING</span>
-          </span>
-          <span class="flex items-center gap-1.5">
-            <span class="w-3 h-3 rounded-sm bg-red-500 inline-block" />
-            <span class="text-slate-300">ALARM</span>
-          </span>
-          <span class="flex items-center gap-1.5">
-            <span class="w-3 h-3 rounded-sm bg-slate-500 inline-block" />
-            <span class="text-slate-300">STOP</span>
+          <span v-for="item in legendItems" :key="item.label" class="flex items-center gap-1.5">
+            <span class="w-3 h-3 rounded-sm inline-block" :style="{ backgroundColor: item.color }" />
+            <span class="text-slate-300">{{ item.label }}</span>
           </span>
         </div>
       </div>
 
-      <!-- Machine Layout -->
-      <div class="flex-1 px-4 pt-4 pb-2 grid grid-cols-3 gap-3">
-
-        <!-- 1ST Zone -->
-        <div class="rounded-xl border-2 border-dashed border-blue-400 p-3 bg-blue-900/10 flex flex-col">
-          <h2 class="text-blue-300 text-center font-bold tracking-widest text-sm mb-3">1ST</h2>
+      <div class="flex-1 px-4 pt-4 pb-2 grid grid-cols-1 gap-3 xl:grid-cols-3">
+        <section v-for="zone in zoneSections" :key="zone.label" class="rounded-xl border-2 border-dashed p-3 flex flex-col" :class="zone.containerClass">
+          <h2 class="text-center font-bold tracking-widest text-sm mb-3" :class="zone.titleClass">{{ zone.label }}</h2>
           <div class="flex-1 grid grid-cols-2 gap-2 content-start">
-            <MachineNode v-for="m in zone1st" :key="m.name" :name="m.name" :status="m.status" :icon="m.icon" />
+            <MachineNode
+              v-for="machine in zone.items"
+              :key="machine.id"
+              :name="machine.name"
+              :status="machine.status"
+            />
+            <div v-if="zone.items.length === 0" class="col-span-2 rounded-lg border border-slate-700 bg-[#0d1526] px-3 py-6 text-center text-xs text-slate-500">
+              No machines in this zone
+            </div>
           </div>
-        </div>
-
-        <!-- BAND Zone -->
-        <div class="rounded-xl border-2 border-dashed border-red-400 p-3 bg-red-900/10 flex flex-col">
-          <h2 class="text-red-300 text-center font-bold tracking-widest text-sm mb-3">BAND</h2>
-          <div class="flex-1 grid grid-cols-1 gap-2 content-start">
-            <MachineNode v-for="m in zoneBand" :key="m.name" :name="m.name" :status="m.status" :icon="m.icon" />
-          </div>
-        </div>
-
-        <!-- 2ND Zone -->
-        <div class="rounded-xl border-2 border-dashed border-green-400 p-3 bg-green-900/10 flex flex-col">
-          <h2 class="text-green-300 text-center font-bold tracking-widest text-sm mb-3">2ND</h2>
-          <div class="flex-1 grid grid-cols-2 gap-2 content-start">
-            <MachineNode v-for="m in zone2nd" :key="m.name" :name="m.name" :status="m.status" :icon="m.icon" />
-          </div>
-        </div>
+        </section>
       </div>
 
-      <!-- Bottom Charts -->
-      <div class="grid grid-cols-3 gap-3 px-4 pb-4">
-
-        <!-- Alarm Trend -->
+      <div class="grid grid-cols-1 gap-3 px-4 pb-4 xl:grid-cols-3">
         <div class="rounded-xl bg-[#111827] border border-slate-700/50 p-3">
           <p class="text-slate-300 text-xs font-semibold mb-2">ALARM TREND <span class="text-slate-500 font-normal">(Last 24 hrs)</span></p>
-          <Line :data="trendData" :options="trendOptions" class="max-h-28" />
+          <Line v-if="alarmTrendData" :data="alarmTrendData" :options="chartOptions" class="max-h-28" />
+          <div v-else class="h-28 flex items-center justify-center text-xs text-slate-500">No alarm trend data</div>
         </div>
 
-        <!-- Alarm by Area -->
         <div class="rounded-xl bg-[#111827] border border-slate-700/50 p-3">
-          <p class="text-slate-300 text-xs font-semibold mb-2">ALARM BY AREA</p>
-          <Bar :data="areaData" :options="areaOptions" class="max-h-28" />
+          <p class="text-slate-300 text-xs font-semibold mb-2">ALARM BY ZONE</p>
+          <Bar v-if="alarmByZoneData" :data="alarmByZoneData" :options="chartOptions" class="max-h-28" />
+          <div v-else class="h-28 flex items-center justify-center text-xs text-slate-500">No alarm zone data</div>
         </div>
 
-        <!-- Top Alarm Code -->
         <div class="rounded-xl bg-[#111827] border border-slate-700/50 p-3">
-          <p class="text-slate-300 text-xs font-semibold mb-2">TOP ALARM CODE</p>
+          <p class="text-slate-300 text-xs font-semibold mb-2">LATEST ALARM EVENTS</p>
           <table class="w-full text-xs">
             <thead>
               <tr class="text-slate-500 border-b border-slate-700">
@@ -148,74 +72,153 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="a in alarms" :key="a.time" class="border-b border-slate-800">
-                <td class="text-slate-400 py-1.5">{{ a.time }}</td>
-                <td class="text-slate-300 py-1.5">{{ a.machine }}</td>
+              <tr v-for="alarm in latestAlarms" :key="alarm.id" class="border-b border-slate-800">
+                <td class="text-slate-400 py-1.5">{{ alarm.time }}</td>
+                <td class="text-slate-300 py-1.5">{{ alarm.machine }}</td>
                 <td class="py-1.5">
-                  <span class="bg-red-600 text-white rounded px-1.5 py-0.5 font-bold text-xs">{{ a.code }}</span>
-                  <span class="text-red-400 ml-1 font-semibold">CRITICAL</span>
+                  <span class="bg-red-600 text-white rounded px-1.5 py-0.5 font-bold text-xs">{{ alarm.code }}</span>
+                  <span class="text-red-400 ml-1 font-semibold">{{ alarm.name }}</span>
                 </td>
+              </tr>
+              <tr v-if="latestAlarms.length === 0">
+                <td colspan="3" class="py-6 text-center text-slate-500">No active alarms</td>
               </tr>
             </tbody>
           </table>
         </div>
-
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted, ref } from "vue";
 import {
   Chart as ChartJS,
-  CategoryScale, LinearScale, PointElement,
-  LineElement, BarElement, Title, Tooltip, Legend, Filler,
-} from "chart.js"
-import { Line, Bar } from "vue-chartjs"
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+} from "chart.js";
+import { Line, Bar } from "vue-chartjs";
 
-ChartJS.register(
-  CategoryScale, LinearScale, PointElement,
-  LineElement, BarElement, Title, Tooltip, Legend, Filler
-)
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler);
 
-definePageMeta({ layout: false })
-useHead({ title: "Machines | Tire Production" })
+definePageMeta({ layout: false });
+useHead({ title: "Machines | Tire Production" });
 
-// Machine zones
-const zone1st = [
-  { name: "LET OFF",      status: "RUNNING", icon: "⚙️" },
-  { name: "FRONT SERVER", status: "RUNNING", icon: "🖥️" },
-  { name: "1ST MAIN",     status: "RUNNING", icon: "🏭" },
-]
-const zoneBand = [
-  { name: "PLY",       status: "RUNNING", icon: "🔧" },
-  { name: "I/L",       status: "RUNNING", icon: "⚙️" },
-  { name: "BAND MAIN", status: "RUNNING", icon: "🏭" },
-]
-const zone2nd = [
-  { name: "BT REAR SERVER",  status: "RUNNING", icon: "🖥️" },
-  { name: "BT MAIN",         status: "RUNNING", icon: "🏭" },
-  { name: "BT FRONT SERVER", status: "RUNNING", icon: "🖥️" },
-  { name: "BT MAIN",         status: "RUNNING", icon: "🏭" },
-  { name: "GT UNLOADER",     status: "ALARM",   icon: "⚠️" },
-  { name: "FR MAIN",         status: "RUNNING", icon: "🏭" },
-]
+const { load } = useProductionDashboard();
 
-// Alarm Trend chart
-const trendData = {
-  labels: ["06:00","06:00","12:30","18:00","24:00"],
-  datasets: [{
-    label: "Alarms",
-    data: [5, 18, 30, 12, 25],
-    borderColor: "#60a5fa",
-    backgroundColor: "rgba(96,165,250,0.15)",
-    pointBackgroundColor: "#60a5fa",
-    pointRadius: 3,
-    tension: 0.4,
-    fill: true,
-  }],
-}
-const trendOptions = {
+const dashboardData = ref<any>(null);
+
+onMounted(async () => {
+  dashboardData.value = await load();
+});
+
+const statusColor = (status: string) =>
+  ({
+    RUNNING: "#22c55e",
+    WARNING: "#facc15",
+    ALARM: "#ef4444",
+    STOP: "#64748b",
+  }[status] ?? "#64748b");
+
+const formatDateTime = (value: string | null | undefined) =>
+  value ? new Date(value).toLocaleString("th-TH", { dateStyle: "short", timeStyle: "short" }) : "-";
+
+const machines = computed(() => dashboardData.value?.machineCards ?? []);
+const activeAlarms = computed(() => dashboardData.value?.activeAlarms ?? []);
+
+const topStats = computed(() => [
+  { label: "Total", value: machines.value.length, unit: "machines" },
+  { label: "Running", value: machines.value.filter((m: any) => m.status === "RUNNING").length, unit: "active" },
+  { label: "Critical", value: machines.value.filter((m: any) => m.status === "ALARM").length, unit: "alarms" },
+  { label: "Alarm 24h", value: dashboardData.value?.alarmTrend?.reduce((sum: number, item: any) => sum + item.count, 0) ?? 0, unit: "events" },
+]);
+
+const legendItems = [
+  { label: "RUNNING", color: "#22c55e" },
+  { label: "WARNING", color: "#facc15" },
+  { label: "ALARM", color: "#ef4444" },
+  { label: "STOP", color: "#64748b" },
+];
+
+const zoneSections = computed(() => {
+  const grouped = {
+    "1ST": machines.value.filter((m: any) => m.zone === "1ST"),
+    BAND: machines.value.filter((m: any) => m.zone === "BAND"),
+    "2ND": machines.value.filter((m: any) => m.zone === "2ND"),
+  };
+
+  return [
+    {
+      label: "1ST",
+      items: grouped["1ST"],
+      containerClass: "border-blue-400 bg-blue-900/10",
+      titleClass: "text-blue-300",
+    },
+    {
+      label: "BAND",
+      items: grouped.BAND,
+      containerClass: "border-red-400 bg-red-900/10",
+      titleClass: "text-red-300",
+    },
+    {
+      label: "2ND",
+      items: grouped["2ND"],
+      containerClass: "border-green-400 bg-green-900/10",
+      titleClass: "text-green-300",
+    },
+  ];
+});
+
+const alarmTrendData = computed(() => {
+  const trend = dashboardData.value?.alarmTrend ?? [];
+  if (!trend.length) return null;
+  return {
+    labels: trend.map((item: any) => item.hour),
+    datasets: [
+      {
+        label: "Alarms",
+        data: trend.map((item: any) => item.count),
+        borderColor: "#60a5fa",
+        backgroundColor: "rgba(96,165,250,0.15)",
+        pointBackgroundColor: "#60a5fa",
+        pointRadius: 3,
+        tension: 0.4,
+        fill: true,
+      },
+    ],
+  };
+});
+
+const alarmByZoneData = computed(() => {
+  const rows = dashboardData.value?.alarmByZone ?? [];
+  if (!rows.length) return null;
+  return {
+    labels: rows.map((item: any) => item.zone),
+    datasets: [
+      {
+        label: "Alarms",
+        data: rows.map((item: any) => item.count),
+        backgroundColor: rows.map((item: any) => {
+          if (item.zone === "1ST") return "#3b82f6";
+          if (item.zone === "BAND") return "#ef4444";
+          if (item.zone === "2ND") return "#22c55e";
+          return "#94a3b8";
+        }),
+        borderRadius: 3,
+      },
+    ],
+  };
+});
+
+const chartOptions = {
   responsive: true,
   maintainAspectRatio: true,
   plugins: { legend: { display: false } },
@@ -223,43 +226,28 @@ const trendOptions = {
     x: { ticks: { color: "#64748b", font: { size: 9 } }, grid: { color: "#1e2d45" } },
     y: { ticks: { color: "#64748b", font: { size: 9 } }, grid: { color: "#1e2d45" }, min: 0 },
   },
-}
+};
 
-// Alarm by Area chart
-const areaData = {
-  labels: ["1ST","BAND","2ND"],
-  datasets: [{
-    label: "Alarms",
-    data: [45, 72, 30],
-    backgroundColor: ["#3b82f6","#ef4444","#22c55e"],
-    borderRadius: 3,
-  }],
-}
-const areaOptions = {
-  responsive: true,
-  maintainAspectRatio: true,
-  plugins: { legend: { display: false } },
-  scales: {
-    x: { ticks: { color: "#64748b", font: { size: 10 } }, grid: { display: false } },
-    y: { ticks: { color: "#64748b", font: { size: 9 } }, grid: { color: "#1e2d45" }, min: 0, max: 80 },
-  },
-}
+const latestAlarms = computed(() =>
+  activeAlarms.value.slice(0, 6).map((alarm: any) => {
+    const machine = machines.value.find((item: any) => item.id === alarm.machine_id);
+    return {
+      id: alarm.id,
+      time: formatDateTime(alarm.start_time),
+      machine: machine?.name ?? alarm.machine_id ?? "-",
+      code: alarm.alarm_code ?? alarm.code ?? "-",
+      name: alarm.alarm_name ?? alarm.name ?? "Alarm",
+      color: statusColor("ALARM"),
+    };
+  })
+);
 
-// Top Alarm Codes
-const alarms = [
-  { time: "10:23:52", machine: "M03 MOLDING",   code: "E221" },
-  { time: "10:22:47", machine: "M01 1ST MAIN",  code: "E101" },
-  { time: "10:21:05", machine: "M04 BAND MAIN", code: "E450" },
-  { time: "10:19:38", machine: "GT UNLOADER",   code: "E133" },
-]
+const errorMessages = computed(() =>
+  Object.entries(dashboardData.value?.errors ?? {})
+    .filter(([, error]) => !!error)
+    .map(([key, error]: any) => `${key}: ${error.message ?? error}`)
+);
 
-// Logout
-const auth = useAuth?.() as any
-const onLogout = async () => {
-  try {
-    if (auth?.signOut) await auth.signOut()
-  } finally {
-    await navigateTo("/login")
-  }
-}
+const hasAnyData = computed(() => !!dashboardData.value?.hasAnyData);
+
 </script>

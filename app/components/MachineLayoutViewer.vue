@@ -2,7 +2,7 @@
   <div class="relative w-full h-full">
     <img
       ref="layoutImage"
-      src="/factory-layout.png"
+      src="/img_Head.png"
       alt="Factory Layout"
       class="w-full h-full object-contain"
       @load="onImageLoad"

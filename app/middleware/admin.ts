@@ -5,6 +5,6 @@ export default defineNuxtRouteMiddleware(async () => {
   const allowed = await admin.refreshAdminState()
 
   if (!allowed) {
-    return navigateTo("/my-courses")
+    return navigateTo("/home")
   }
 })

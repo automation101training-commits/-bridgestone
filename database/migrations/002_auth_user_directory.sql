@@ -40,7 +40,7 @@ as $$
     nullif(split_part(coalesce(fallback_email, ''), '@', 1), ''),
     nullif(trim(coalesce(fallback_email, '')), ''),
     fallback_user_id::text,
-    'ลูกค้า'
+    'Operator'
   );
 $$;
 
@@ -140,11 +140,11 @@ begin
   if not exists (
     select 1
     from pg_proc
-    where proname = 'is_mnb_admin'
+    where proname = 'is_factory_admin'
       and pg_function_is_visible(oid)
   ) then
     execute $fn$
-      create function public.is_mnb_admin()
+      create function public.is_factory_admin()
       returns boolean
       language plpgsql
       stable
@@ -153,8 +153,8 @@ begin
       as $body$
         begin
           return
-            coalesce((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin', false)
-            or coalesce((auth.jwt() -> 'user_metadata' ->> 'role') = 'admin', false)
+            coalesce((auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'superadmin', 'owner'), false)
+            or coalesce((auth.jwt() -> 'user_metadata' ->> 'role') in ('admin', 'superadmin', 'owner'), false)
             or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin') in ('true', '1'), false)
             or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin') in ('true', '1'), false);
         end;
@@ -171,14 +171,14 @@ create policy "auth_user_directory_admin_select"
 on public.auth_user_directory
 for select
 to authenticated
-using (public.is_mnb_admin());
+using (public.is_factory_admin());
 
 drop policy if exists "auth_user_directory_admin_manage" on public.auth_user_directory;
 create policy "auth_user_directory_admin_manage"
 on public.auth_user_directory
 for all
 to authenticated
-using (public.is_mnb_admin())
-with check (public.is_mnb_admin());
+using (public.is_factory_admin())
+with check (public.is_factory_admin());
 
-comment on table public.auth_user_directory is 'Mirror of Supabase Authentication > Users for admin screens';
+comment on table public.auth_user_directory is 'Mirror of Supabase authentication users for production admin screens';

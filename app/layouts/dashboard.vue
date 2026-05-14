@@ -98,7 +98,6 @@ const navItems = [
   { label: "Dashboard",       to: "/dashboard",                icon: "mdi:view-dashboard-outline" },
   { label: "Layout Line",     to: "/dashboard/layout-line",   icon: "mdi:floor-plan"              },
   { label: "Overview Status", to: "/dashboard/overview",      icon: "mdi:chart-line"              },
-  { label: "Air Compressor",  to: "/dashboard/air-compressor",icon: "mdi:air-filter"              },
 ]
 
 const auth  = useAuth?.()  as any

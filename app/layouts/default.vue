@@ -6,7 +6,7 @@
       <div class="max-w-none mx-auto px-4 sm:px-6 lg:px-10">
         <div class="h-16 flex items-center gap-3 sm:gap-4">
           <NuxtLink to="/" class="flex items-center gap-3 shrink-0">
-            <img src="/img_Head.png" alt="NIC" class="h-9 w-auto object-contain" />
+            <img src="/img_Head.png" alt="Tire Production" class="h-9 w-auto object-contain" />
           </NuxtLink>
         </div>
 
@@ -41,19 +41,19 @@
             <div v-else class="flex items-center gap-2">
               <NuxtLink
                 v-if="isAdmin"
-                to="/admin"
+                to="/dashboard/settings"
                 class="h-9 inline-flex items-center rounded-full border border-slate-200 px-4 text-sm font-semibold text-slate-700
                        hover:bg-slate-50"
               >
-                หลังบ้าน
+                Settings
               </NuxtLink>
 
               <NuxtLink
-                to="/my-courses"
+                to="/home"
                 class="h-9 inline-flex items-center rounded-full bg-red-600 px-4 text-sm font-semibold text-white shadow-sm
                        hover:bg-red-700 active:bg-red-800 transition-colors"
               >
-                คอร์สของฉัน
+                Dashboard
               </NuxtLink>
 
               <button
@@ -77,11 +77,12 @@
     <footer class="bg-red-600 text-white mt-auto">
       <div class="max-w-none mx-auto px-4 sm:px-6 lg:px-10 py-6">
         <div class="flex flex-col sm:flex-row gap-3 sm:gap-6 text-xs text-white/85">
-          <NuxtLink to="/contact" class="hover:underline">Data privacy</NuxtLink>
-          <NuxtLink to="/contact" class="hover:underline">Cookie settings</NuxtLink>
-          <NuxtLink to="/contact" class="hover:underline">Imprint</NuxtLink>
-          <NuxtLink to="/contact" class="hover:underline">General terms and conditions</NuxtLink>
-          <span class="sm:ml-auto text-white/70">&copy; {{ new Date().getFullYear() }} M&B</span>
+          <NuxtLink to="/" class="hover:underline">Home</NuxtLink>
+            <NuxtLink to="/machines" class="hover:underline">Machines</NuxtLink>
+          <NuxtLink to="/home2" class="hover:underline">Page2</NuxtLink>
+          <NuxtLink to="/oee" class="hover:underline">OEE</NuxtLink>
+          <NuxtLink to="/dashboard" class="hover:underline">Dashboard</NuxtLink>
+          <span class="sm:ml-auto text-white/70">&copy; {{ new Date().getFullYear() }} Tire Production</span>
         </div>
       </div>
     </footer>
@@ -95,11 +96,11 @@ import { useRoute } from "vue-router"
 const route = useRoute()
 
 const nav = [
-  { label: "ผลิตภัณฑ์", to: "/product" },
-  { label: "คอร์สอบรม", to: "/training" },
-  { label: "ใบเสนอราคา", to: "/invoice" },
-  { label: "รับทำเว็บไซต์ธุรกิจ", to: "/web-service" },
-  { label: "ติดต่อเรา", to: "/contact" },
+  { label: "Home", to: "/" },
+  { label: "Production", to: "/home" },
+  { label: "Machines", to: "/machines" },
+  { label: "OEE", to: "/oee" },
+  { label: "Dashboard", to: "/dashboard" },
 ]
 
 const auth = useAuth?.() as any
